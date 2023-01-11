@@ -1,0 +1,240 @@
+{% extends 'store/_Master.html' %}
+{% load static %}
+{% load humanize %}
+{% load mathfilters %}
+{% block main_content %}
+
+        
+        <!-- Breadcrumb Start -->
+        <div class="breadcrumb-wrap">
+            <div class="container-fluid">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'store:index' %}" style="font-size:25px; color: #ffffff;">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'store:shop_grid' 0 %}" style="font-size:25px; color: #ffffff;">Sản phẩm</a></li>
+                    <li class="breadcrumb-item active"><a style="font-size:25px">Tài khoản</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- Breadcrumb End -->
+        
+        <!-- My Account Start -->
+        <div class="my-account">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+                            <a class="nav-link active" id="dashboard-nav" data-toggle="pill" href="#dashboard-tab" role="tab"><i class="fa fa-user"></i> Thông tin của tôi</a>
+                            <a class="nav-link" id="account-nav" data-toggle="pill" href="#account-tab" role="tab"><i class="fa fa-refresh"></i> Cập nhật thông tin và đổi mật khẩu</a>
+                            <a class="nav-link" id="orders-nav" data-toggle="pill" href="#orders-tab" role="tab"><i class="fa fa-shopping-bag"></i> Các đơn đặt hàng</a>
+                            <a class="nav-link" href="{% url  'customer:customer_logout'%}"><i class="fa fa-sign-out-alt"></i> Đăng xuất</a>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="dashboard-tab" role="tabpanel" aria-labelledby="dashboard-nav">
+                                <div class="col-md-12">
+                                    {{result_changepassword|safe}}
+                                </div>
+                                <div class="col-md-12">
+                                    {{result_update_info|safe}}
+                                </div>
+                                <h4>Thông tin của tôi</h4>
+                                <form method = "post">
+                                    <div class="row">
+                                        {% csrf_token %}
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Tên" name = "ten" value="{{ request.session.session_KhachHang.first_name }}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Họ" name = "ho" value="{{ request.session.session_KhachHang.last_name }}" readonly>
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Số điện thoại" name = "sdt" value="{{ request.session.session_KhachHang.tel }}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Email" name = "email" value="{{ request.session.session_KhachHang.email }}" readonly>
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-12">
+                                            <input class="form-control" type="text" placeholder="Địa chỉ" name = "dia_chi" value="{{ request.session.session_KhachHang.address }}" readonly>
+                                        </div>
+                                        <br><br>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="account-tab" role="tabpanel" aria-labelledby="account-nav">
+                                <h4>Cập nhật thông tin cá nhân</h4>
+                                <form method = "post">
+                                    <div class="row">
+                                        {% csrf_token %}
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Họ" name = "ho">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Tên" name = "ten">
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Số điện thoại"  name = "sdt">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="text" placeholder="Email" name = "email" value="{{ request.session.session_KhachHang.email }}" readonly>
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-12">
+                                            <input class="form-control" type="text" placeholder="Địa chỉ" name = "dia_chi">
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-12">
+                                            <button class="btn" name = "btnCapNhat" value="Cập nhật">Cập nhật tài khoản</button>
+                                            <br><br>
+                                        </div>
+                                    </div>
+                                </form>
+                                <h4>Đổi mật khẩu</h4>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="row">   
+                                        <div class="col-md-12">
+                                            <input class="form-control" type="password" placeholder="Mật khẩu hiện tại" name = "old_password">
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="password" placeholder="Mật khẩu mới" name = "new_password">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input class="form-control" type="password" placeholder="Nhập lại mật khẩu mới" name = "confirm_new_password">
+                                        </div>
+                                        <br><br>
+                                        <div class="col-md-12">
+                                            <button  class="btn" name = "btnDoiMatKhau" value = "Doi mat khau">Lưu thay đổi</button>
+                                        </div>
+                                    </div>
+                                    
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="orders-tab" role="tabpanel" aria-labelledby="orders-nav">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <th style ="font-size: 25px;"><center>STT</center></th>
+                                                <th style ="font-size: 25px;"><center>Mã đơn hàng</center></th>
+                                                <th style ="font-size: 25px;"><center>Ngày đặt hàng</center></th>
+                                                <th style ="font-size: 25px;"><center>Giá</center></th>
+                                                <th style ="font-size: 25px;"><center>Trạng thái</center></th>
+                                                <th style ="font-size: 25px;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for order in orders%}
+                                            <tr>
+                                                <td style ="font-size: 23px;"><center>{{forloop.counter}}</center></td>
+                                                <td style ="font-size: 23px;"><center>#{{order.pk}}</center></td>
+                                                <td style ="font-size: 23px;"><center>{{order.created}}</center></td>
+                                                <td style ="font-size: 23px;"><center>{{ order.total|floatformat:0|intcomma}}</center></td>
+                                                <td style ="font-size: 23px;">
+                                                    {% if order.status == 1 %}
+                                                    <center><span class="badge badge-pill badge-success">Đã giao</span></center>
+                                                    {% else %}
+                                                    <center><span class="badge badge-pill badge-danger">Chưa giao</span></center>
+                                                    {% endif %}
+                                                </td>
+                                                <td style ="font-size: 23px;"><center><button class="btn" data-toggle="modal" data-target="#order{{order.pk}}">
+                                                    Xem chi tiết
+                                                </button></center>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="payment-tab" role="tabpanel" aria-labelledby="payment-nav">
+                                <h4>Payment Method</h4>
+                                <p>
+                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. In condimentum quam ac mi viverra dictum. In efficitur ipsum diam, at dignissim lorem tempor in. Vivamus tempor hendrerit finibus. Nulla tristique viverra nisl, sit amet bibendum ante suscipit non. Praesent in faucibus tellus, sed gravida lacus. Vivamus eu diam eros. Aliquam et sapien eget arcu rhoncus scelerisque.
+                                </p> 
+                            </div>
+                            <div class="tab-pane fade" id="address-tab" role="tabpanel" aria-labelledby="address-nav">
+                                <h4>Address</h4>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Payment Address</h5>
+                                        <p>123 Payment Street, Los Angeles, CA</p>
+                                        <p>Mobile: 012-345-6789</p>
+                                        <button class="btn">Edit Address</button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Shipping Address</h5>
+                                        <p>123 Shipping Street, Los Angeles, CA</p>
+                                        <p>Mobile: 012-345-6789</p>
+                                        <button class="btn">Edit Address</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- My Account End -->
+        <!-- Modal -->
+        {% for order_id, order_items in dict_orders.items %}
+        <div class="modal fade" id="order{{order_id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Đơn hàng #{{order_id}}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style ="font-size: 20px;" width="5%">#</th>
+                                    <th scope="col" style ="font-size: 20px;" width="25%">Hình ảnh</th>
+                                    <th scope="col" style ="font-size: 20px;" width="35%">Tên sản phẩm</th>
+                                    <th scope="col" style ="font-size: 20px;" width="12%">Số lượng</th>
+                                    <th scope="col" style ="font-size: 20px;" width="10%">Đơn giá</th>
+                                    <th scope="col" style ="font-size: 20px;" width="13%">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order_item in order_items %}
+                                <tr>
+                                    <th scope="row" style ="font-size: 20px;" width="5%">{{ forloop.counter }}</th>
+                                    <td width="25%">
+                                        <img src = "{{ order_item.product_image.url }}" alt = "{{order_item.product_name}}" width="40%">
+                                    </td>
+                                    <td style ="font-size: 20px;" width="35%">{{order_item.product_name}}</td>
+                                    <td style ="font-size: 20px;" width="12%"><center>{{order_item.quantity}}</center></td>
+                                    <td style ="font-size: 20px;" width="10%">{{order_item.price|floatformat:0|intcomma}}đ</td>
+                                    <td style ="font-size: 20px;" width="13%">
+                                        {% with total=order_item.quantity|mul:order_item.price %}
+                                            {{total|floatformat:0|intcomma}}đ
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td colspan="5" class= "text-right" style="font-size: 25px; color:#dd2222; text-decoration: underline">
+                                        <b>Tổng tiền:</b>
+                                    </td> <!--colspan là gom 5 cột lại thành 1-->
+                                    <td style ="font-size: 25px; color:#dd2222">{{order_items.0.total_price|floatformat:0|intcomma}}đ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+{% endblock %}

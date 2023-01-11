@@ -1,0 +1,120 @@
+{% extends 'store/_Master.html' %}
+{% load static %}
+{% load humanize %}
+{% load remove_substr %}
+{% block title_tab %}Xiaomi | Checkout{% endblock title_tab %}
+
+{% block main_content %}     
+
+    <!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-section set-bg" data-setbg="img/breadcrumb.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2>Checkout</h2>
+                        <div class="breadcrumb__option">
+                            <a href="{% url 'store:index' %}">Trang chủ</a>
+                            <span>Thanh toán</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Checkout Section Begin -->
+    <section class="checkout spad">
+        <div class="container">
+            <div class="checkout__form">
+                <h4>Chi tiết thanh toán</h4>
+                <form method = "post">
+                    {%csrf_token%}
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <!-- <p>First Name<span>*</span></p>
+                                        <input type="text"> -->
+                                        <p>{{form_order.first_name.label}}</p>
+                                        {{form_order.first_name}}
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>{{form_order.last_name.label}}</p>
+                                        {{form_order.last_name}}
+                                        <!-- <input type="text"> -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="checkout__input">
+                                <p>{{form_order.address.label}}</p>
+                                {{form_order.address}}
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>{{form_order.email.label}}</p>
+                                        {{form_order.email}}
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        
+                                        <p>{{form_order.tel.label}}</p>
+                                        {{form_order.tel}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-7">
+                            <div class="checkout__order">
+                                <h4>Đơn hàng</h4>
+                                <div class="checkout__order__products">Sản phẩm <span> Giá tiền</span></div>
+                                <ul>
+                                    {% for item in cart %}
+                                        {% with product=item.product %}
+                                            <li>{{ product.name|remove_substr:'(Chính Hãng Digiworld)' }} * {{item.quantity}} <span>{{item.total_price_prev_coupon|floatformat:0|intcomma}} đ</span></li>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </ul>
+                                <!-- <div class="checkout__order__total">Tổng tiền</div> <span>{% load humanize %}{{ cart.get_total_price|floatformat:0|intcomma }} đ</span></div> -->
+                                <div class="checkout__order__total_price">Tổng tiền <span>{% load humanize %}{{ cart.get_total_price|floatformat:0|intcomma }} đ</span></div>
+                                <div class="checkout__order__subtotal">Giảm giá <span>{% load humanize %}{{ cart.get_discount|floatformat:0|intcomma }} đ</span></div>
+                                <div class="checkout__order__total">Tổng tiền phải trả <span>{% load humanize %}{{ cart.get_final_total_price|floatformat:0|intcomma }} đ</span></div>
+                                
+                                <div class="checkout__input__checkbox">
+                                    <label for="payment">
+                                        Kiểm tra thanh toán
+                                        <input type="checkbox" id="payment" name = "check">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="checkout__input__checkbox">
+                                    <label for="paypal">
+                                        Chuyển khoản
+                                        <input type="checkbox" id="paypal" name = "transfer_credit">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="checkout__input__checkbox">
+                                    <label for="paypal">
+                                        Thanh toán khi nhận hàng
+                                        <input type="checkbox" id="paypal" name = "cod">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                                <button type="submit" class="site-btn" name = "btnDatHang" value = "Đặt hàng">Đặt hàng</button>
+                            </div>
+                        </div>    
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <!-- Checkout Section End -->
+
+{% endblock %}

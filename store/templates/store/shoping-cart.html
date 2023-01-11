@@ -1,0 +1,184 @@
+{% extends 'store/_Master.html' %}
+{% load static %}
+{% load humanize %}
+{% load remove_substr %}
+{% block title_tab %}Xiaomi | Checkout{% endblock title_tab %}
+
+{% block main_content %}     
+
+    <!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-section set-bg" data-setbg="img/breadcrumb.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2>Shopping Cart</h2>
+                        <div class="breadcrumb__option">
+                            <a href="{% url 'store:index' %}" style="font-size:20px">Trang chủ</a>
+                            <span style="font-size:20px">Giỏ hàng</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Shoping Cart Section Begin -->
+    <section class="shoping-cart spad">
+        <div class="container">
+            {% if cart|length > 0 %}
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="shoping__cart__table">
+                            <table style="width: 100%">
+                                <thead>
+                                    <tr>
+                                        <tr>
+                                            <th colspan="3">STT</th>
+                                            <th colspan="3">Tên sản phẩm</th>
+                                            <th colspan="3">Đơn giá</th>
+                                            <th colspan="3">Số lượng</th>
+                                            <th colspan="3">Thành tiền</th>
+                                            <th colspan="3">Xóa</th>
+                                        </tr>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in cart %}
+                                    <tr>
+                                        <td>{{forloop.counter}}</td>
+                                        <td>
+                                            <td class="shoping__cart__item" colspan="3" style="width:50%;">
+                                                <a href="{% url 'store:shop_details' c.product.id %}"><img src="{{c.product.image.url}}" alt="Image" width="15%" height="auto"></a>
+                                                <a href="{% url 'store:shop_details' c.product.id %}">{{c.product.name|remove_substr:'(Chính Hãng Digiworld)'}}</a>
+                                            </td>
+                                            
+                                        </td>
+                                        <td class="shoping__cart__price" colspan="3">{{c.price|floatformat:0|intcomma}}</td>
+                                            
+                                        <td class="shoping__cart__quantity" colspan="3">
+                                            <div class="quantity">
+                                                <div class="pro-qty">
+                                                    <input type="text"  id = "quantity1{{ c.product.id }}" name = "quantity1{{ c.product.id }}" value="{{c.quantity}}">    
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="shoping__cart__total" colspan="3">{{c.total_price|floatformat:0|intcomma}}</td>
+                                        <td class="shoping__cart__item__close" colspan="3">
+                                            <button type = "button" class="fa fa-trash" data-toggle="modal" data-target="#sp{{ c.product.id }}"></button>
+                                        </td>
+
+                                        <div class="modal fade" id="sp{{ c.product.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                                            aria-hidden="true">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="exampleModalLabel">Xóa sản phẩm</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Bạn có đồng ý xóa sản phẩm <b>{{c.product.name|remove_substr:'(Chính Hãng Digiworld)'}}</b> khỏi giỏ hàng hay không?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        
+                                                        <form method="post" action="{% url 'cart:remove_cart' c.product.id %}">
+                                                            {% csrf_token %}
+                                                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Hủy bỏ</button>
+                                                            <button type="submit" class="btn btn-outline-warning">Đồng ý</button>
+                                                        </form>
+                                                        
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </tr>           
+                                    {% endfor %} 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-12">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="shoping__cart__btns">
+                                <button type = "button" onclick="window.location.href='{% url 'store:shop_grid' 0 %}';" class="primary-btn cart-btn">TIẾP TỤC MUA SẮM</button>
+                                <button type = "submit"  class="primary-btn cart-btn cart-btn-right" name = "btnCapNhat" value ="Cập nhật giỏ hàng"><span class="icon_loading"></span>
+                                    CẬP NHẬT GIỎ HÀNG</button>
+                            </div>
+                            {% for c in cart %}
+                            <input type = "hidden" id = "quantity2{{ c.product.id }}" name = "quantity2{{ c.product.id }}" value = "{{c.quantity}}">
+                            <script>
+                                $(document).ready(function () {
+                                        $("#quantity1{{ c.product.id }}").change(function () {   
+                                            let gia_tri = $("#quantity1{{ c.product.id }}").val();
+                                            $("#quantity2{{ c.product.id }}").val(gia_tri);
+                                        });
+                                    });
+
+                                $(document).ready(function () {
+                                    $(document).on("click", ".dec.qtybtn", function(){   
+                                        let gia_tri = $("#quantity1{{ c.product.id }}").val();
+                                        $("#quantity2{{ c.product.id }}").val(gia_tri);
+                                    });
+                                });
+                                $(document).ready(function () {
+                                    $(document).on("click", ".inc.qtybtn", function(){   
+                                        let gia_tri = $("#quantity1{{ c.product.id }}").val();
+                                        $("#quantity2{{ c.product.id }}").val(gia_tri);
+                                    });
+                                });
+                            </script>
+                            <!--javascript làm việc với id còn Python là name-->
+                            {% endfor %}
+                        </form>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="shoping__continue">
+                            <div class="shoping__discount">
+                                <h5>Mã giảm giá</h5>
+                                <form method = "post">
+                                    {% csrf_token %}
+                                    <input type="text" placeholder="Nhập mã giảm giá của bạn" name = "ma_giam_gia" value="{{ ma_giam_gia }}" style="font-size:15px; color: black;">
+                                    <button type="submit" class="site-btn" name = "btnMaGiamGia" value="Sử dụng" style="font-size:15px; color: #ffffff; background: #F5652D;">Áp dụng mã</button>
+                                </form>
+                                <br>
+                                <p style="font-size:18px; color: #f5652d;">Nhập 'lũ hậu' để được giảm 30%</p>
+                                <p style="font-size:18px; color: #f5652d;">Nhập 'thập tứ a ca' hoặc 'linh14' để được giảm 14%</p>
+                                <p style="font-size:18px; color: #f5652d;">Nhập 'vùng đất cấm' để được giảm 12%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="shoping__checkout">
+                            <ul>
+                                <center><li><h3>Thông tin đơn hàng</h3></li></center><br>
+                                <li>Tạm tính<span>{{cart.get_total_price|floatformat:0|intcomma}} đ</span></li>
+                                <li>Giảm giá<span>{{cart.get_discount|floatformat:0|intcomma}} đ</span></li>
+                                <li>Phí giao hàng<span>0 đ</span></li>
+                                <li>Tổng thành tiền<span>{{cart.get_final_total_price|floatformat:0|intcomma}} đ</span></li>
+                            </ul>
+                            {% if request.session.session_KhachHang %}
+                            <a href = "{% url 'cart:checkout' %}" class="primary-btn">MUA HÀNG</a>
+                            {% else %}
+                            <a href = "#"  class="primary-btn">MUA HÀNG</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <center><p style="font-size:30px"><b>Không có sản phẩm nào trong giỏ hàng</b></p></center>
+            {% endif %}
+        </div>
+    </section>
+    <!-- Shoping Cart Section End -->
+
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'store/_Master.html' %}
+{% load static %}
+{% block title_tab %}Xiaomi | Checkout{% endblock title_tab %}
+
+{% block main_content %}    
+
+<div class="col-lg-6">               
+    <form method = "post">
+        {%csrf_token%}
+        <div class="login-form">
+            <div class="row">
+                <div class="col-md-12">
+                    <label>E-mail</label>
+                    <!--Làm việc trực tiếp trên html-->
+                    <input class="form-control" type="text" placeholder="Email" name="email"> 
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-12">
+                    <label>Mật khẩu</label>
+                    <input class="form-control" type="password" placeholder="Mật khẩu" name = "mat_khau">
+                </div>
+            </div>   
+                
+            <div class="col-md-6">
+                <a href="{% url 'customer:reset_password' %}" style="text-decoration: underline; color:blue; font-size: 20px;">Quên mật khẩu?</a>
+            </div><br>
+            <div class="row">
+                <div class="col-md-12">
+                    <button class="btn btn-outline-primary" name = "btnDangNhap" value = "Đăng nhập">Đăng nhập</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

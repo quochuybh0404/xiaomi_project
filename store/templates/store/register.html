@@ -1,0 +1,57 @@
+{% extends 'store/_Master.html' %}
+{% load static %}
+{% block title_tab %}Xiaomi | Checkout{% endblock title_tab %}
+
+{% block main_content %}     
+
+<div class="login">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6">
+                <form method = "post">
+                    <div class="register-form">
+                        {%csrf_token%}
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{result_singup|safe}}
+                            </div>
+                            <div class="col-md-6">
+                                {{form_signup.last_name.label}}
+                                {{form_signup.last_name}}
+                            </div>
+                            <div class="col-md-6">
+                                {{form_signup.first_name.label}}
+                                {{form_signup.first_name}}
+                            </div>                      
+                            <div class="col-md-6">
+                                {{form_signup.email.label}}
+                                {{form_signup.email}}
+                            </div>
+                            <div class="col-md-6">
+                                {{form_signup.tel.label}}
+                                {{form_signup.tel}}
+                            </div>
+                            <div class="col-md-6">
+                                {{form_signup.password.label}}
+                                {{form_signup.password}}
+                            </div>
+                            <div class="col-md-6">
+                                {{form_signup.confirm_password.label}}
+                                {{form_signup.confirm_password}}
+                            </div>
+                            <div class="col-md-12">
+                                {{form_signup.address.label}}
+                                {{form_signup.address}}
+                            </div>
+                            <div class="col-md-12">
+                                <button class="btn btn-outline-primary" name = "btnDangKy" value = "Đăng ký">Đăng ký</button>  <!--value muốn gán giá trị gì cũng đc-->
+                            </div>
+                        </div>
+                    </div>
+                </form>                           
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
