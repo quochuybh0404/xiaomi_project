@@ -3,10 +3,6 @@ django-ckeditor
 Pillow
 djangorestframework
 feedparser
-numpy
 argon2-cffi
-pandas
-matplotlib
-seaborn
 django-mathfilters
 requests
