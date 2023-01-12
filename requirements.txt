@@ -1,8 +1,0 @@
-django
-django-ckeditor
-Pillow
-djangorestframework
-feedparser
-argon2-cffi
-django-mathfilters
-requests
