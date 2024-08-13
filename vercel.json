@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "builds": [{
         "src": "XiaomiStore/wsgi.py",
@@ -10,4 +11,18 @@
             "dest": "XiaomiStore/wsgi.py"
         }
     ]
+=======
+{
+    "builds": [{
+        "src": "XiaomiStore/wsgi.py",
+        "use": "@vercel/python",
+        "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+    }],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "XiaomiStore/wsgi.py"
+        }
+    ]
+>>>>>>> e2a144fd46750f7adbb438b361be48bfe61c4a88
 }
