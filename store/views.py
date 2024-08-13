@@ -3,7 +3,9 @@ from store.models import *
 from cart.cart import Cart
 import re
 import json
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 
 
@@ -20,10 +22,16 @@ def index(request):
     list_redmi_note_products = []
     list_gaming_products = []
     list_all_products = []
+
+    all_products = Product.objects.all().order_by('-price')
     
+    # max_value = Product.objects.values_list('price').order_by('-price').last()    
+
     # Lọc
     categories = Category.objects.all()
-    all_products = Product.objects.all().order_by('-price')
+    
+    
+    print(len(all_products))
     mi_products = Product.objects.filter(category_id = 1).order_by('-price')
     mi_note_products = Product.objects.filter(category_id = 2).order_by('-price')
     poco_products = Product.objects.filter(category_id = 3).order_by('-price')
@@ -66,6 +74,14 @@ def index(request):
         if product.price != "Liênhệ":
             list_all_products.append(product)
 
+    # # Kiểm tra nếu là AJAX request
+    # if request.is_ajax():
+    #     products_name_data = [{'name': product.name, 'price': product.price} for product in all_products]
+    #     return JsonResponse({
+    #         'products': products_name_data,
+
+    #     })
+    
     
     return render(request, 'store/index.html', {
         'categories':categories,
@@ -78,14 +94,23 @@ def index(request):
         'redmi_products':list_redmi_products[:8],
         'redmi_note_products':list_redmi_note_products[:8],
         'gaming_products':list_gaming_products[:8],
-        'cart':cart
-        
+        'cart':cart,
+
     })
 
 
 def shop_grid(request, pk):
     cart = Cart(request)
     categories = Category.objects.all()
+    all_products_no_contact = Product.objects.exclude(price__icontains='Liênhệ')
+    min_value = Product.objects.exclude(price__icontains='Liênhệ').values_list('price').order_by('price')[0][0]
+    max_value = Product.objects.exclude(price__icontains='Liênhệ').values_list('price').order_by('price')[len(all_products_no_contact) - 1][0]
+    min_price = float(request.GET.get('min_price', min_value)) 
+    max_price = float(request.GET.get('max_price', max_value))
+    
+
+    list_products = Product.objects.filter(price__range=(min_price, max_price)).order_by('price')
+    products_count = list_products.count()
     if pk == 0: 
         products = Product.objects.all().order_by('name')
     else:
@@ -97,17 +122,39 @@ def shop_grid(request, pk):
     for product in feature_products:
         if product.price != "Liênhệ":
             list_feature_products.append(product)
+
+
+    print("Sản phẩm cuối cùng: %s"  %list_products.last())
+    print("Min: %s" %min_price)
+    print("Max: %s" %max_price)
+    print("Số lượng sản phẩm: %s" %products_count)
+
     # Phân trang
     page = request.GET.get('page', 1)
-    paginator = Paginator(products, 15)
-    products_pager = paginator.page(page)
+    paginator = Paginator(list_products, 15)
+
+    try:
+        products_pager = paginator.page(page)
+    except EmptyPage:
+        products_pager = paginator.page(paginator.num_pages)
+    
     return render(request, 'store/shop-grid.html',{
         'categories':categories,
         'products': products_pager,
+        'total_products': products_count,
         'feature_products_1': list_feature_products[:3],
         'feature_products_2': list_feature_products[3:6],
-        'cart':cart
+        'list_products': list_products,
+        'min_value':min_value,
+        'max_value':max_value,
+        'products_count': products_count,
+        'cart':cart,
     })
+
+# from django.http import JsonResponse
+# from django.template.loader import render_to_string
+
+
 
 def shop_details(request, pk):
     cart = Cart(request)

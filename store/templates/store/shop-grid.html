@@ -1,3 +1,8 @@
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- Bao gồm jQuery UI -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 {% extends 'store/_Master.html' %}
 {% load static %}
@@ -8,10 +13,12 @@
 {% block main_content %}  
 
 
-    
+
     <!-- Hero Section End -->
+<div class="body__page">
 
     <!-- Breadcrumb Section Begin -->
+     
     <section class="breadcrumb-section set-bg" data-setbg="img/breadcrumb.jpg">
         <div class="container">
             <div class="row">
@@ -43,20 +50,21 @@
                                 {% endfor %}
                             </ul>
                         </div>
+                        <p>Số lượng sản phẩm: <span id="product-count">{{products_count}}</span></p>
                         <form method="get">
                             <div class="sidebar__item">
                                 <h4>Price</h4>
                                 <div class="price-range-wrap">
                                     <div class="price-range ui-slider ui-corner-all ui-slider-horizontal ui-widget ui-widget-content"
-                                        data-min="10" data-max="540">
+                                        data-min="{{ min_value|floatformat }}" data-max="{{ max_value|floatformat }}">
                                         <div class="ui-slider-range ui-corner-all ui-widget-header"></div>
                                         <span tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default"></span>
                                         <span tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default"></span>
                                     </div>
-                                    <div class="range-slider">
+                                    <div class="range-slider"  style="width: 500px;">
                                         <div class="price-input">
-                                            <input type="text" id="minamount">
-                                            <input type="text" id="maxamount">
+                                            <input type="text" id="minamount" style="width: 100px;">           
+                                            <input type="text" id="maxamount" style="width: 100px;">
                                         </div>
                                     </div>
                                 </div>
@@ -98,7 +106,7 @@
                     </div>
                 </div>
                 
-                <div class="col-lg-9 col-md-7">
+                <div id="productList" class="col-lg-9 col-md-7">
                     <h4><strong>{{ title_search }}</strong></h4>
                     <div class="row">
                     {% for product in products %}
@@ -135,9 +143,12 @@
                         {% endif %}
                     {% endfor %}
                     </div>
-                    <div class="product__pagination">
+                    
+                    <!-- Phân trang -->
+                    
+                    <div class="product__pagination" id = "product_pagination">
                         {% if products.has_previous %}
-                            <a href="?page={{ products.previous_page_number }}"><i class="fa fa-long-arrow-left"></i></a>                                                  
+                            <a href="?page={{ products.previous_page_number }}" class="previous_page"><i class="fa fa-long-arrow-left"></i></a>                                                  
                         {% endif %}
 
                         {% if products.number > 3 %}                                   
@@ -145,12 +156,12 @@
                         {% endif %}
 
                         {% for i in products.paginator.page_range %}
-                            {% if i > products.number|add:'-3' %} <!--Nếu giá trị i lớn hơn trang hiện hành -->
+                            {% if i > products.number|add:'-3' %} 
                                 {% if i < products.number|add:'3' %}
                                     {% if products.number == i %}
-                                        <a  class = "active" href="?page={{ i }}">{{ i }}</a>
+                                        <a  class = "active current_page" href="?page={{ i }}">{{ i }}</a>
                                     {% else %}
-                                        <a  href="?page={{ i }}">{{ i }}</a>
+                                        <a  href="?page={{ i }}" class="page_others" data-total = '{{total_products}}' data-limit = '15'>{{ i }}</a>
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
@@ -159,16 +170,239 @@
                                 <a  href="#">...</a>
                         {% endif %}
                         
-                        <!-- <a href="#">1</a> -->
-                        
                         {% if products.has_next %}                        
-                            <a href="?page={{ products.next_page_number }}"><i class="fa fa-long-arrow-right"></i></a>                                                   
+                            <a href="?page={{ products.next_page_number }}" class="next_page"><i class="fa fa-long-arrow-right"></i></a>                                                   
                         {% endif %}
                     </div>
                 </div>
-                
             </div>
         </div>
     </section>
+</div>
     <!-- Product Section End -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script>
+        $(document).ready(function () {
+            var rangeSlider = $(".price-range"),
+                minamount = $("#minamount"),
+                maxamount = $("#maxamount"),
+                minPrice = rangeSlider.data('min'),
+                maxPrice = rangeSlider.data('max'),
+                shopGridUrl = "{% url 'store:shop_grid' pk=0 %}";
+            function updateProductsWithAjax(minValue, maxValue, url) {
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    data: {
+                        min_price: minValue,
+                        max_price: maxValue,
+                    },
+                    success: function (data) {
+                        var htmlData = $(data),
+                            productCountElement = htmlData.find("#product-count"),
+                            count = productCountElement.text();
+
+                        $("#product-count").text(count);
+                        $("#productList").html(htmlData.find("#productList").html());
+
+                        $("#productList .product__item__pic").each(function () {
+                            var imageUrl = $(this).data('setbg');
+                            $(this).css("background-image", 'url(' + imageUrl + ')');
+                        });
+                    },
+                    error: function () {
+                        console.log("Error")
+                    }
+                });
+            }
+
+            function updatePriceInput() {
+                var minValue = parseFloat(minamount.val().replace(' đ', '').replace(/\D/g, '')),
+                    maxValue = parseFloat(maxamount.val().replace(' đ', '').replace(/\D/g, ''));
+
+                if (isNaN(minValue)) minValue = minPrice;
+                if (isNaN(maxValue)) maxValue = maxPrice;
+
+                if (minValue > maxValue) {
+                    minValue = maxValue;
+                    minamount.val(formatCurrency(minValue));
+                }
+
+                if (minValue < minPrice) {
+                    minValue = minPrice;
+                    minamount.val(formatCurrency(minValue));
+                }
+
+                if (maxValue > maxPrice) {
+                    maxValue = maxPrice;
+                    maxamount.val(formatCurrency(maxValue));
+                }
+
+                if (maxValue < minValue) {
+                    maxValue = minValue;
+                    maxamount.val(formatCurrency(maxValue));
+                }
+
+                return {
+                    minValue: minValue,
+                    maxValue: maxValue
+                };
+            }
+
+            function formatCurrency(amount) {
+                // Chuyển đổi số tiền sang chuỗi định dạng tiền tệ
+                var currencyString = amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+                // Loại bỏ ký hiệu tiền tệ "₫"
+                currencyString = currencyString.replace('₫', ' đ');
+
+                // Thêm đơn vị tiền tệ vào cuối chuỗi
+                return currencyString;
+            }
+
+            rangeSlider.slider({
+                range: true,
+                min: minPrice,
+                max: maxPrice,
+                values: [minPrice, maxPrice],
+                slide: function (event, ui) {
+                    minamount.val(formatCurrency(ui.values[0]));
+                    maxamount.val(formatCurrency(ui.values[1]));
+                },
+                stop: function (event, ui) {
+                    var values = updatePriceInput();
+                    updateProductsWithAjax(values.minValue, values.maxValue, shopGridUrl);
+                }
+            });
+
+            minamount.on('change', function () {
+                var formattedValue = formatCurrencyInput($(this).val());
+                $(this).val(formattedValue); // Cập nhật lại giá trị của ô input
+
+                var values = updatePriceInput();
+                updateProductsWithAjax(values.minValue, values.maxValue, shopGridUrl);
+                rangeSlider.slider('values', 0, values.minValue);
+            });
+
+            maxamount.on('change', function () {
+                var formattedValue = formatCurrencyInput($(this).val());
+                $(this).val(formattedValue); // Cập nhật lại giá trị của ô input
+
+                var values = updatePriceInput();
+                updateProductsWithAjax(values.minValue, values.maxValue, shopGridUrl);
+                rangeSlider.slider('values', 1, values.maxValue);
+            });
+
+            function formatCurrencyInput(inputValue) {
+                // Loại bỏ tất cả các dấu chấm từ giá trị nhập vào
+                var numericValue = inputValue.replace(/\./g, '');
+
+                // Định dạng lại số tiền theo đúng định dạng
+                var formattedValue = parseFloat(numericValue).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+                // Loại bỏ ký hiệu tiền tệ "₫"
+                formattedValue = formattedValue.replace('₫', ' đ');
+
+                return formattedValue;
+            }
+            
+
+            // Gắn sự kiện click cho các liên kết trong phân trang
+            $(document).on('click', '.page_others, .previous_page, .next_page, .current_page', function (e) {
+                e.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+                var nowUrlPage = $(this).attr('href'); // Lấy URL của liên kết được click
+                var start_index = ($(this).text() - 1) * 15 + 1;
+                var total_products = parseInt($(this).attr('data-total'));
+                var end_index = start_index + 14;
+                if (end_index > total_products) {
+                    end_index = total_products;
+                }
+
+                // Cập nhật lại giá trị min và max của khoảng giá tiền
+                var values = updatePriceInput();
+
+                // Gửi yêu cầu Ajax đến URL của liên kết với các tham số start_index, end_index, min_price và max_price
+                updateProductsWithAjax(values.minValue, values.maxValue, nowUrlPage);
+            });
+
+            // Initial update
+            var initialValues = updatePriceInput();
+
+            // Định dạng giá trị mặc định
+            minamount.val(formatCurrency(initialValues.minValue));
+            maxamount.val(formatCurrency(initialValues.maxValue));
+
+            // Gọi hàm để cập nhật sản phẩm với giá trị mặc định
+            updateProductsWithAjax(initialValues.minValue, initialValues.maxValue, shopGridUrl);
+
+        });
+    </script>
+
+    
+
+    
+    <script>
+        $(document).ready(function () {
+            var shopGridUrl = "{% url 'store:shop_grid' pk=0 %}";
+
+            // Tính toán start_index và end_index
+            var start_index = ($(this).text() - 1) * 15 + 1; // Ví dụ: Trang 2 -> start_index = (2 - 1) * 15 + 1 = 16
+            var total_products = parseInt($(this).attr('data-total')); // Tổng số sản phẩm trên trang hiện tại
+            var end_index = start_index + 14; // Tính toán end_index dựa trên start_index và số sản phẩm trên mỗi trang
+            if (end_index > total_products) {
+                end_index = total_products; // Nếu end_index vượt quá tổng số sản phẩm, gán end_index bằng tổng số sản phẩm
+            }
+            
+            // Định nghĩa một hàm để thực hiện yêu cầu AJAX khi nhấp vào một trang
+            function handlePageClick(e) {
+                e.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+                var nowUrlPage = $(this).attr('href'); // Lấy URL của liên kết được click
+
+                // Gửi yêu cầu Ajax đến URL của liên kết với các tham số start_index và end_index
+                $.ajax({
+                    type: "GET",
+                    url: nowUrlPage,
+                    success: function (data) {
+                        // Thay thế nội dung của phần tử có class là product__pagination
+                        // bằng nội dung trả về từ máy chủ
+                        var htmlData = $(data);
+                        // --- Cập nhật số lượng sản phẩm ---
+                        var productCountElement = htmlData.find("#product-count");
+                        var count = productCountElement.text();
+                        $("#product-count").text(count);
+
+                        // --- Thay đổi sản phẩm ---
+                        var productListHTML = htmlData.find("#productList").html();
+
+                        $("#productList").html(productListHTML);
+
+                        // --- Thêm style cho hình ảnh ---
+                        $("#productList .product__item__pic").each(function () {
+                            var imageUrl = $(this).data('setbg');
+                            $(this).css("background-image", 'url(' + imageUrl + ')');
+                        });
+                        // Gắn lại sự kiện click cho các phần tử .page_others mới
+                        $('.page_others, .previous_page, .next_page, .current_page').on('click', handlePageClick);
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }
+
+            // Gắn sự kiện click cho tất cả các liên kết trong phân trang
+            $('.page_others, .previous_page, .next_page, .current_page').on('click', handlePageClick);
+
+            
+        });
+    </script>
+
+
+    
+
+
 {% endblock %}

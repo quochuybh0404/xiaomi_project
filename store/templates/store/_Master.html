@@ -221,9 +221,9 @@
                     <nav class="header__menu">
                         {% with request.resolver_match.url_name as url_name %}
                         <ul>
-                            <li class="{% if url_name == 'index' %}active{% endif %}"><a href="{% url 'store:index' %}" style="font-size:20px">Trang chủ</a></li>
-                            <li class="{% if url_name == 'shop_grid' %}active{% endif %}"><a href="{% url 'store:shop_grid' 0 %}" style="font-size:20px">Cửa hàng</a></li>
-                            <li class="{% if url_name == 'contact' %}active{% endif %}"><a href="{% url 'store:contact' %}" style="font-size:20px">Liên hệ</a></li>
+                            <li class="{% if url_name == 'index' %}active{% endif %}"><a href="{% url 'store:index' %}" class="nav-link" data-url="{% url 'store:index' %}" style="font-size:20px">Trang chủ</a></li>
+                            <li class="{% if url_name == 'shop_grid' %}active{% endif %}"><a href="{% url 'store:shop_grid' 0 %}" class="nav-link" data-url="{% url 'store:shop_grid' 0 %}" style="font-size:20px">Cửa hàng</a></li>
+                            <li class="{% if url_name == 'contact' %}active{% endif %}"><a href="{% url 'store:contact' %}" data-url="{% url 'store:contact' %}" class="nav-link" style="font-size:20px">Liên hệ</a></li>
                         </ul>
                         {% endwith %}
                     </nav>
@@ -274,8 +274,9 @@
                     <div class="hero__search">
                         <div class="hero__search__form">
                             <form method="get" action = "{% url 'store:search' %}">
-                                <input type="text" placeholder="Tìm kiếm" name = "keyword" autocomplete="on" value = "{{keyword}}">
+                                <input id="idsearch" type="text" placeholder="Tìm kiếm" name = "keyword" autocomplete="on" value = "{{keyword}}">
                                 <button type="submit" class="site-btn">TÌM KIẾM</button>
+                                <ul id="suggestions"></ul>
                             </form>
                         </div>
                         <div class="hero__search__phone">
@@ -303,7 +304,6 @@
     </section>
 
     <h3>{% block main_content%}{% endblock %}</h3>
-
     <!-- Footer Section Begin -->
     <footer class="footer spad">
         <div class="container">
@@ -364,7 +364,7 @@
                         <div class="footer__copyright__text"><p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
   Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
   <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p></div>
-                        <div class="footer__copyright__payment"><img src="img/payment-item.png" alt=""></div>
+                        <div class="footer__copyright__payment"><img src="{% static 'store/img/payment-item.png' %}" alt="Payment Item"></div>
                     </div>
                 </div>
             </div>
@@ -381,9 +381,7 @@
     <script src="{% static 'store/js/mixitup.min.js' %}"></script>
     <script src="{% static 'store/js/owl.carousel.min.js' %}"></script>
     <script src="{% static 'store/js/main.js' %}"></script>
-    <!-- <script src="{% static 'store/js/jquery-1.11.1.min.js' %}"></script> -->
-    
+        
 
 </body>
-
 </html>
