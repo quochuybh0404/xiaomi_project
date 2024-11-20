@@ -151,9 +151,8 @@
                                     <button type="submit" class="site-btn" name = "btnMaGiamGia" value="Sử dụng" style="font-size:15px; color: #ffffff; background: #F5652D;">Áp dụng mã</button>
                                 </form>
                                 <br>
-                                <p style="font-size:18px; color: #f5652d;">Nhập 'lũ hậu' để được giảm 30%</p>
-                                <p style="font-size:18px; color: #f5652d;">Nhập 'thập tứ a ca' hoặc 'linh14' để được giảm 14%</p>
-                                <p style="font-size:18px; color: #f5652d;">Nhập 'vùng đất cấm' để được giảm 12%</p>
+                                <p style="font-size:18px; color: #f5652d;">Nhập 'Django' để được giảm 20%</p>
+                                <p style="font-size:18px; color: #f5652d;">Nhập 'Python' để được giảm 30%</p>
                             </div>
                         </div>
                     </div>
@@ -167,9 +166,30 @@
                                 <li>Tổng thành tiền<span>{{cart.get_final_total_price|floatformat:0|intcomma}} đ</span></li>
                             </ul>
                             {% if request.session.session_KhachHang %}
-                            <a href = "{% url 'cart:checkout' %}" class="primary-btn">MUA HÀNG</a>
+                            <a href = "{% url 'cart:checkout' %}" class="primary-btn">ĐẶT HÀNG</a>
                             {% else %}
-                            <a href = "#"  class="primary-btn">MUA HÀNG</a>
+                            <a href="#notLogin" class="primary-btn"  onclick="loginRequired()">ĐẶT HÀNG</a>
+                            
+                            <!-- Start Modal -->
+                            <div class="modal" id="loginModal" tabindex="-1">
+                                <div class="modal-dialog">
+                                  <div class="modal-content">
+                                    <div class="modal-header" style="background-color: #f5652d">
+                                        <h5 class="modal-title">Bạn chưa đăng nhập</h5>
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                      </button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <p>Vui lòng đăng nhập để có thể đặt hàng.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                            <!-- End Modal -->
                             {% endif %}
                         </div>
                     </div>
@@ -180,5 +200,12 @@
         </div>
     </section>
     <!-- Shoping Cart Section End -->
+    <script>
+        function loginRequired() {
+            $(document).ready(function() {
+            $('#loginModal').modal('show');
+        });
+        }
+    </script>
 
 {% endblock %}

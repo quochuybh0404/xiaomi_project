@@ -18,20 +18,12 @@ def cart_detail(request):
     # Mã giảm giá
     list_ma_giam_gia = [
         {
-        'thập tứ a ca': 0.86
+        'Python': 0.7
         },
-
         {
-            'linh14': 0.86
+        'Django': 0.8
         },
-
-        {
-            'vùng đất cấm': 0.88
-        },
-
-        {
-            'tiên lũ': 0.7
-        }]
+        ]
     ma_giam_gia = ''
     giam_gia = 1
     if request.POST.get('btnMaGiamGia'):
