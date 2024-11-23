@@ -110,7 +110,7 @@
                             {% csrf_token %}
                             <div class="shoping__cart__btns">
                                 <button type = "button" onclick="window.location.href='{% url 'store:shop_grid' 0 %}';" class="primary-btn cart-btn">TIẾP TỤC MUA SẮM</button>
-                                <button type = "submit"  class="primary-btn cart-btn cart-btn-right" name = "btnCapNhat" value ="Cập nhật giỏ hàng"><span class="icon_loading"></span>
+                                <button type = "submit"  id = "update_cart" class="primary-btn cart-btn cart-btn-right" name = "btnCapNhat" value ="Cập nhật giỏ hàng"><span class="icon_loading"></span>
                                     CẬP NHẬT GIỎ HÀNG</button>
                             </div>
                             {% for c in cart %}
@@ -145,10 +145,11 @@
                         <div class="shoping__continue">
                             <div class="shoping__discount">
                                 <h5>Mã giảm giá</h5>
-                                <form method = "post">
+                                <form method="post" id="apply-coupon-form" action="{% url 'cart:cart_detail' %}">
                                     {% csrf_token %}
-                                    <input type="text" placeholder="Nhập mã giảm giá của bạn" name = "ma_giam_gia" value="{{ ma_giam_gia }}" style="font-size:15px; color: black;">
-                                    <button type="submit" class="site-btn" name = "btnMaGiamGia" value="Sử dụng" style="font-size:15px; color: #ffffff; background: #F5652D;">Áp dụng mã</button>
+                                    <input type="text" id= "inputCoupon" placeholder="Nhập mã giảm giá của bạn" name="ma_giam_gia" value="{{ ma_giam_gia }}" style="font-size:15px; color: black;">
+                                    <button type="submit" class="site-btn" name="btnMaGiamGia" 
+                                        style="font-size:15px; color: #ffffff; background: #F5652D;">Áp dụng mã</button>
                                 </form>
                                 <br>
                                 <p style="font-size:18px; color: #f5652d;">Nhập 'Django' để được giảm 20%</p>
@@ -156,43 +157,45 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="col-lg-6">
                         <div class="shoping__checkout">
                             <ul>
                                 <center><li><h3>Thông tin đơn hàng</h3></li></center><br>
-                                <li>Tạm tính<span>{{cart.get_total_price|floatformat:0|intcomma}} đ</span></li>
-                                <li>Giảm giá<span>{{cart.get_discount|floatformat:0|intcomma}} đ</span></li>
+                                <li>Tạm tính<span id="subtotal-price">{{ cart.get_total_price|floatformat:0|intcomma }} đ</span></li>
+                                <li>Giảm giá<span id="discount-amount">{{ cart.get_discount|floatformat:0|intcomma }} đ</span></li>
                                 <li>Phí giao hàng<span>0 đ</span></li>
-                                <li>Tổng thành tiền<span>{{cart.get_final_total_price|floatformat:0|intcomma}} đ</span></li>
+                                <li>Tổng thành tiền<span id="total-price">{{ cart.get_final_total_price|floatformat:0|intcomma }} đ</span></li>
                             </ul>
                             {% if request.session.session_KhachHang %}
-                            <a href = "{% url 'cart:checkout' %}" class="primary-btn">ĐẶT HÀNG</a>
+                                <a href="{% url 'cart:checkout' %}" class="primary-btn">ĐẶT HÀNG</a>
                             {% else %}
-                            <a href="#notLogin" class="primary-btn"  onclick="loginRequired()">ĐẶT HÀNG</a>
-                            
-                            <!-- Start Modal -->
-                            <div class="modal" id="loginModal" tabindex="-1">
-                                <div class="modal-dialog">
-                                  <div class="modal-content">
-                                    <div class="modal-header" style="background-color: #f5652d">
-                                        <h5 class="modal-title">Bạn chưa đăng nhập</h5>
-                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                      </button>
+                                <a href="#notLogin" class="primary-btn" onclick="loginRequired()">ĐẶT HÀNG</a>
+                                
+                                <!-- Modal -->
+                                <div class="modal" id="loginModal" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header" style="background-color: #f5652d">
+                                                <h5 class="modal-title">Bạn chưa đăng nhập</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Vui lòng đăng nhập để có thể đặt hàng.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="modal-body">
-                                      <p>Vui lòng đăng nhập để có thể đặt hàng.</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    </div>
-                                  </div>
                                 </div>
-                            </div>
-                            <!-- End Modal -->
+                                <!-- End Modal -->
                             {% endif %}
                         </div>
                     </div>
+                    
                 </div>
             {% else %}
                 <center><p style="font-size:30px"><b>Không có sản phẩm nào trong giỏ hàng</b></p></center>
@@ -200,12 +203,71 @@
         </div>
     </section>
     <!-- Shoping Cart Section End -->
+
+
+    <!-- Show modal if User isn't logged in yet -->
     <script>
         function loginRequired() {
-            $(document).ready(function() {
             $('#loginModal').modal('show');
-        });
         }
+
+        $("input[type='submit']").click(function(event) {
+            event.preventDefault(); // Ngăn việc gửi form
+            return false; // Đảm bảo không thực hiện hành vi mặc định
+        });
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        // Default Discount Price is 0: 
+        document.getElementById("discount-amount").innerText = "0 đ";
+        document.getElementById("total-price").innerText = document.getElementById("subtotal-price").innerText
+
+        // Handle Apply coupon
+        const couponForm = document.querySelector("#apply-coupon-form");
+        if (couponForm) {
+            couponForm.addEventListener("submit", function (e) {
+                e.preventDefault(); // Ngăn chặn form submit
+
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+                const formData = new FormData(couponForm);
+                const data = {};
+                
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+                data["btnMaGiamGia"] = true;
+
+                // Gửi request AJAX
+                fetch(couponForm.action, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: JSON.stringify(data),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            console.log(data)
+                            alert(data.message);
+                            // Cập nhật giao diện
+                            document.querySelector("#discount-amount").innerText = `${data.discount_price.toLocaleString()} đ`;
+                            document.querySelector("#total-price").innerText = `${data.total_price.toLocaleString()} đ`;
+                        } else {
+                            alert(data.message);
+                            document.querySelector("#discount-amount").innerText = `${data.discount_price.toLocaleString()} đ`;
+                            document.querySelector("#total-price").innerText = `${data.total_price.toLocaleString()} đ`;
+                        }
+                    })
+                    .catch((error) => console.error("Lỗi:", error));
+            });
+        }
+    });
+
+    </script>
+
 
 {% endblock %}

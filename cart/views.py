@@ -8,108 +8,187 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from XiaomiStore.settings import EMAIL_HOST_USER
 from django.core.mail import send_mail, EmailMultiAlternatives
+import json
+from django.http import JsonResponse
 
 # Create your views here.
 
+def apply_coupon(cart, coupon_code):
+    list_ma_giam_gia = {
+        "Python": 0.7,
+        "Django": 0.8,
+    }
+    giam_gia = list_ma_giam_gia.get(coupon_code, 1)  # Mặc định là 1 nếu mã không hợp lệ
+    print(giam_gia)
+    cart_new = {}
+    for c in cart:
+        product_cart = {
+            str(c["product"].pk): {
+                "quantity": c["quantity"],
+                "price": str(c["product"].price),
+                "coupon": str(giam_gia),
+            }
+        }
+        cart_new.update(product_cart)
+        c["coupon"] = giam_gia
+
+    return cart_new, giam_gia
+
+
+
+def update_cart(cart, data):
+    """
+    Cập nhật giỏ hàng dựa trên dữ liệu được gửi.
+    """
+    cart_new = {}
+    for c in cart:  # Duyệt qua giỏ hàng hiện tại
+        quantity_key = f"quantity2{c['product'].pk}"
+        quantity_new = int(data.get(quantity_key, c["quantity"]))
+
+        if quantity_new == 0:
+            # Xóa sản phẩm nếu số lượng bằng 0
+            cart.remove(c["product"])
+        else:
+            # Cập nhật sản phẩm với số lượng mới
+            product_cart = {
+                str(c["product"].pk): {
+                    "quantity": quantity_new,
+                    "price": str(c["product"].price),
+                    "coupon": str(c.get("coupon", 1)),
+                }
+            }
+            cart_new.update(product_cart)
+            c["quantity"] = quantity_new
+
+    return cart_new
+
+
+
+##### Giữ lại
 def cart_detail(request):
     categories = Category.objects.all()
     cart = Cart(request)
+    discount_price = 0
 
-    # Mã giảm giá
-    list_ma_giam_gia = [
-        {
-        'Python': 0.7
-        },
-        {
-        'Django': 0.8
-        },
-        ]
-    ma_giam_gia = ''
-    giam_gia = 1
-    if request.POST.get('btnMaGiamGia'):
-        ma_giam_gia = request.POST.get('ma_giam_gia')
-        for dict_ma_giam_gia in list_ma_giam_gia:
-            if ma_giam_gia in dict_ma_giam_gia:
-                cart_new = {}
-                giam_gia = dict_ma_giam_gia[ma_giam_gia]
-                for c in cart: # Duyệt giỏ hàng đang có
-                    product_cart = {
-                        str(c['product'].pk) : {
-                                    'quantity': c['quantity'],
-                                    'price': str(c['product'].price),
-                                    'coupon': str(giam_gia)
-                                }
-                    }
-                    cart_new.update(product_cart)
-                    # Giữ lại số lượng mới trên ô tại thời điểm click nút
-                    c['coupon'] = dict_ma_giam_gia[ma_giam_gia]
-                else:
-                    # Cập nhật session giỏ hàng(cart)
-                    request.session['cart'] = cart_new
-                break
-        else:
-            cart_new = {}
-            giam_gia = 1
-            for c in cart: # Duyệt giỏ hàng đang có
-                product_cart = {
-                    str(c['product'].pk) : {
-                                'quantity': c['quantity'],
-                                'price': str(c['product'].price),
-                                'coupon': str(giam_gia)
-                            }
-                }
-                cart_new.update(product_cart)
-                # Giữ lại số lượng mới trên ô tại thời điểm click nút
-                c['coupon'] = giam_gia
-            else:
-                request.session['cart'] = cart_new
+    # Kiểm tra nếu là AJAX request
+    if request.headers.get("x-requested-with") == "XMLHttpRequest" and request.method == "POST":
+        data = json.loads(request.body)
+        
+        # Xử lý áp dụng mã giảm giá
+        if data.get("btnMaGiamGia"):
+            ma_giam_gia = data.get("ma_giam_gia", "").strip()
+            cart_new, giam_gia = apply_coupon(cart, ma_giam_gia)
+            request.session["cart"] = cart_new
 
-    # Trường hợp này là để khi ai đó muốn tăng giảm sản phẩm rồi bấm vào cập nhật giỏ hàng thì sẽ bị load lại trang
-    # Khi đó sẽ ko còn mã coupoun lúc đó giá tiền giảm trở về 0.
-    else:
-        cart_new = {}
-        giam_gia = 1
-        for c in cart: # Duyệt giỏ hàng đang có
-            product_cart = {
-                str(c['product'].pk) : {
-                            'quantity': c['quantity'],
-                            'price': str(c['product'].price),
-                            'coupon': str(giam_gia)
-                        }
-            }
-            cart_new.update(product_cart)
-            # Giữ lại số lượng mới trên ô tại thời điểm click nút
-            c['coupon'] = giam_gia
-        else:
-            request.session['cart'] = cart_new
+            # Tính lại tổng giá sau giảm giá
+            original_price = float(sum(float(item["price"]) * item["quantity"]  for item in cart))
+            discount_price = float(sum(float(item["price"]) * item["quantity"] * (1 - float(item["coupon"])) for item in cart))
+            total_price = original_price - discount_price
+            
 
-    # Cập nhật giỏ hàng
-    if request.POST.get('btnCapNhat'):
-        cart_new = {}
-        for c in cart: # Duyệt giỏ hàng đang có
-            quantity_new = int(request.POST.get('quantity2'+ str(c['product'].pk)))
-            if quantity_new == 0:
-                cart.remove(c['product'])
-            else:
-                product_cart = {
-                    str(c['product'].pk) : {
-                                'quantity': quantity_new,
-                                'price': str(c['product'].price),
-                                'coupon': str(c['coupon'])
-                            }
-                }
-                cart_new.update(product_cart)
-            #Giữ lại số lượng mới trên ô tại thời điểm click nút
-            c['quantity'] = quantity_new
-        # Cập nhật session giỏ hàng(Cart)
-        request.session['cart'] = cart_new
+            return JsonResponse({
+                "success": giam_gia < 1,
+                "discount_rate": giam_gia,
+                "original_price": original_price,
+                "discount_price": discount_price,
+                "total_price": total_price,
+                "message": "Áp dụng mã thành công!" if giam_gia < 1 else "Mã giảm giá không hợp lệ.",
+            })
+    
+    # Xử lý request thông thường
+    if request.method == "POST":
+        # Xử lý cập nhật giỏ hàng (nếu không phải AJAX request)
+        if "btnCapNhat" in request.POST:
+            cart_new = update_cart(cart, request.POST)
+            request.session["cart"] = cart_new
 
 
-    return render(request, 'store/shoping-cart.html',{
-        'cart':cart,
-        'categories':categories,
-        'ma_giam_gia':ma_giam_gia,
+    return render(request, "store/shoping-cart.html", {
+        "cart": cart,
+        "categories": categories,
+        "ma_giam_gia": '',
+        
     })
+
+
+# def cart_detail(request):
+#     categories = Category.objects.all()
+#     cart = Cart(request)
+
+#     # Kiểm tra nếu là AJAX request
+#     if request.headers.get("x-requested-with") == "XMLHttpRequest" and request.method == "POST":
+#         data = json.loads(request.body)
+
+#         # Xử lý áp dụng mã giảm giá
+#         if data.get("btnMaGiamGia"):
+#             ma_giam_gia = data.get("ma_giam_gia", "").strip()
+#             cart_new, giam_gia = apply_coupon(cart, ma_giam_gia)
+#             request.session["cart"] = cart_new
+
+            
+
+#             # Tính lại tổng giá sau giảm giá
+#             total_price = sum(float(item["price"]) * item["quantity"] * float(item["coupon"]) for item in cart)
+#             discount_price = sum(float(item["price"]) * item["quantity"] * (1 - float(item["coupon"])) for item in cart)
+
+#             # Lưu thông tin mã giảm giá vào session
+#             request.session["discount"] = {
+#                 "code": ma_giam_gia,
+#                 "rate": giam_gia,
+#                 "discount_price": discount_price
+#             }
+
+#             return JsonResponse({
+#                 "success": giam_gia < 1,
+#                 "discount_rate": giam_gia,
+#                 "discount_price": discount_price,
+#                 "total_price": total_price,
+#                 "message": "Áp dụng mã thành công!" if giam_gia < 1 else "Mã giảm giá không hợp lệ.",
+#             })
+
+#     # Xử lý request thông thường
+#     if request.method == "POST":
+#         # Xử lý cập nhật giỏ hàng (nếu không phải AJAX request)
+#         if "btnCapNhat" in request.POST:
+#             cart_new = update_cart(cart, request.POST)
+#             request.session["cart"] = cart_new
+
+            
+#             if "discount" in request.session:
+#                 print(request.session["discount"])
+#                 del request.session["discount"]
+                
+
+#             # Đặt lại giá trị giảm giá trong view
+#             giam_gia = 1  # Không áp dụng giảm giá
+#             discount_price = 0
+#             total_price = sum(float(item["price"]) * item["quantity"] for item in cart)
+
+
+#     # Kiểm tra mã giảm giá trong session khi tải lại trang
+#     discount_info = request.session.get("discount", None)
+#     if discount_info:
+#         giam_gia = discount_info.get("rate", 1)
+#         ma_giam_gia = discount_info.get("code", "")
+#         discount_price = sum(
+#             float(item["price"]) * item["quantity"] * (1 - giam_gia) for item in cart
+#         )
+#         total_price = sum(
+#             float(item["price"]) * item["quantity"] * giam_gia for item in cart
+#         )
+#     else:
+#         giam_gia = 1
+#         ma_giam_gia = ""
+#         discount_price = 0
+#         total_price = sum(float(item["price"]) * item["quantity"] for item in cart)
+
+#     return render(request, "store/shoping-cart.html", {
+#         "cart": cart,
+#         "categories": categories,
+#         "ma_giam_gia": ma_giam_gia,
+#         "discount_price": discount_price,
+#         "total_price": total_price,
+#     })
 
 
 @require_POST
